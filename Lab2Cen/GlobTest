@@ -1,1 +1,49 @@
+# test_glob_one_or_more.py
+from glob_lit import Lit
+from glob_one_or_more import OneOrMore
+
+def compile_pattern(pat: str):
+    """
+    Build a linked chain of nodes (Lit / OneOrMore) where each node has .rest.
+    Example: "a+bc" -> Lit("a") -> OneOrMore() -> Lit("b") -> Lit("c")
+    """
+    parts = []
+    i = 0
+    while i < len(pat):
+        if pat[i] == '+':
+            parts.append(OneOrMore())
+            i += 1
+        else:
+            # group consecutive non-'+' into one Lit node
+            j = i
+            while j < len(pat) and pat[j] != '+':
+                j += 1
+            parts.append(Lit(pat[i:j]))
+            i = j
+
+    # link .rest from right to left
+    for a, b in zip(reversed(parts[:-1]), reversed(parts[1:])):
+        a.rest = b
+    return parts[0] if parts else None
+
+def matches(pat: str, text: str) -> bool:
+    prog = compile_pattern(pat)
+    if prog is None:
+        return text == ""
+    return prog.match(text, 0)
+
+def test_one_or_more_empty():                 # /+/ matches ""  (FAIL)
+    assert not matches("+", "")
+
+def test_one_or_more_matches_entire_string(): # /+/ matches "abc" (PASS)
+    assert matches("+", "abc")
+
+def test_one_or_more_matches_as_prefix():     # /+def/ matches "abcdef" (PASS)
+    assert matches("+def", "abcdef")
+
+def test_one_or_more_matches_as_suffix():     # /abc+/ matches "abcdef" (PASS)
+    assert matches("abc+", "abcdef")
+
+def test_one_or_more_matches_interior():      # /a+c/ matches "abc" (PASS)
+    assert matches("a+c", "abc")
 
