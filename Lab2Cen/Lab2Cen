@@ -1,1 +1,11 @@
+# glob_one_or_more.py
+from typing import Set
 
+class OneOrMore:
+    def match(self, text: str, i: int) -> Set[int]:
+        if i >= len(text):
+            return set()
+        return set(range(i + 1, len(text) + 1))
+
+    def __repr__(self) -> str:
+        return "OneOrMore(+)"
