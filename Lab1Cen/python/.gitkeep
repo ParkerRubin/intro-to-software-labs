@@ -1,0 +1,68 @@
+#Lab 1 CEN3062C Chapter 3
+
+import sys
+import hashlib
+from collections import OrderedDict
+from pathlib import Path
+import csv
+
+
+def sha256_hex(s: str) -> str:
+    #Return SHA-256 hash of a string in hex form.
+    return hashlib.sha256(s.encode("utf-8")).hexdigest()
+
+
+def sha256_int_from_hex(hex_digest: str) -> int:
+    #Convert hex digest to an integer.
+    return int(hex_digest, 16)
+
+
+def process_file(txt_path: Path):
+    #Read text file, compute SHA-256 for each unique line, return rows.
+    with txt_path.open("r", encoding="utf-8") as f:
+        lines = [line.strip() for line in f if line.strip()]  # strip and ignore blanks
+
+    # keep unique lines in first-seen order
+    unique_lines = list(OrderedDict.fromkeys(lines).keys())
+
+    rows = []
+    for line in unique_lines:
+        h = sha256_hex(line)
+        rows.append((line, h, sha256_int_from_hex(h)))
+    return rows
+
+
+def main(argv=None):
+    if argv is None:
+        argv = sys.argv[1:]
+    if not argv:
+        print("Usage: python solution_sha256_unique_lines.py <path-to-text-file>")
+        return 2
+
+    txt_path = Path(argv[0])
+    rows = process_file(txt_path)
+
+    # Write to CSV with standard library
+    out_csv = txt_path.with_suffix("")  # remove .txt
+    out_csv = Path(str(out_csv) + "_hashes.csv")
+    with out_csv.open("w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(["line", "sha256_hex", "sha256_int"])
+        writer.writerows(rows)
+
+    print(f"Wrote {out_csv}")
+    return 0
+
+
+if __name__ == "__main__":
+    txt_path = Path(r"C:\Users\morta\Downloads\wordcount.txt")
+    rows = process_file(txt_path)
+
+    out_csv = txt_path.with_suffix("")  # remove .txt
+    out_csv = Path(str(out_csv) + "_hashes.csv")
+    with out_csv.open("w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(["line", "sha256_hex", "sha256_int"])
+        writer.writerows(rows)
+
+    print(f"Wrote {out_csv}")
