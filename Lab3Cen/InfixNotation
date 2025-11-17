@@ -1,1 +1,83 @@
+# Helper
+def precedence(op):
+    if op == '*':
+        return 2
+    elif op in ('+', '-'):
+        return 1
+    return 0
 
+def is_operator(ch):
+    return ch in '+-*'
+
+# 1) Infix to Postfix
+def infix_to_postfix(infix):
+    infix = infix.replace(" ", "")
+    stack = []
+    output = ""
+    for ch in infix:
+        if ch.isdigit():
+            output += ch + " "
+        elif ch == '(':
+            stack.append(ch)
+        elif ch == ')':
+            while stack and stack[-1] != '(':
+                output += stack.pop() + " "
+            stack.pop()
+        elif is_operator(ch):
+            while stack and precedence(stack[-1]) >= precedence(ch):
+                output += stack.pop() + " "
+            stack.append(ch)
+    while stack:
+        output += stack.pop() + " "
+    return output.strip()
+
+# Infix Prefix
+def infix_to_prefix(infix):
+    infix = infix[::-1]
+    infix = infix.replace('(', 'temp').replace(')', '(').replace('temp', ')')
+    postfix = infix_to_postfix(infix)
+    return ' '.join(postfix.split()[::-1])
+
+#Post Fix
+def evaluate_postfix(postfix):
+    stack = []
+    for ch in postfix.split():
+        if ch.isdigit():
+            stack.append(float(ch))
+        else:
+            b = stack.pop()
+            a = stack.pop()
+            if ch == '+':
+                stack.append(a + b)
+            elif ch == '-':
+                stack.append(a - b)
+            elif ch == '*':
+                stack.append(a * b)
+    return stack[0]
+
+# Evaulate Prefix
+def evaluate_prefix(prefix):
+    stack = []
+    for ch in prefix.split()[::-1]:
+        if ch.isdigit():
+            stack.append(float(ch))
+        else:
+            a = stack.pop()
+            b = stack.pop()
+            if ch == '+':
+                stack.append(a + b)
+            elif ch == '-':
+                stack.append(a - b)
+            elif ch == '*':
+                stack.append(a * b)
+    return stack[0]
+
+# Main program
+if __name__ == "__main__":
+    infix = input("Enter infix expression: ")
+    postfix = infix_to_postfix(infix)
+    prefix = infix_to_prefix(infix)
+    print("Postfix:", postfix)
+    print("Prefix:", prefix)
+    print("Postfix Evaluation:", evaluate_postfix(postfix))
+    print("Prefix Evaluation:", evaluate_prefix(prefix))
